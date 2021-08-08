@@ -16,13 +16,13 @@ jobs:
         include:
           - name: linux
             os: ubuntu-latest
-            executable: yap
+            executable: release-test
             artifact_name: target/release/release-test
             asset_name: release-test-Linux-x86_64.zip
 
           - name: macos
             os: macos-latest
-            executable: yap
+            executable: release-test
             artifact_name: target/release/release-test
             asset_name: release-test-MacOS-x86_64.zip
 
