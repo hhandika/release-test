@@ -50,10 +50,9 @@ jobs:
         #   repo_token: "${{ secrets.GITHUB_TOKEN }}"
         #   files: ${{ matrix.asset_name }}
         # 
-        tagname: "${GITHUB_REF#refs/tags/}"
-        run: |
-         
-          gh release upload --clobber ${{ tagname }} ${{ matrix.asset_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION:  ${{ needs.draft_release.outputs.tag_name }}
+        run: |
+          gh release upload --clobber ${{ env.VERSION }} ${{ matrix.asset_name }}
+
