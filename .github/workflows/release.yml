@@ -56,5 +56,6 @@ jobs:
           # VERSION:  ${{ needs.draft_release.outputs.tag_name }}
         run: |
           echo $VERSION
+          gh release create $VERSION
           gh release upload --clobber ${{ env.VERSION }} ${{ matrix.asset_name }}
 
