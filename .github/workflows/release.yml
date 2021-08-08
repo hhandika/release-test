@@ -6,11 +6,6 @@ on:
       - "*"
 
 jobs:
-  create:
-    name: Create Release
-    run: |
-      echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-      gh release create $VERSION
   publish:
     name: Release for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
