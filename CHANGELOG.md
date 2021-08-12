@@ -1,5 +1,9 @@
 # Release Notes
 
+## v0.1.14
+
+- Update tags
+
 ## v0.1.13
 
 - Fix tag issues
