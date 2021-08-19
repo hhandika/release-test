@@ -43,17 +43,11 @@ jobs:
           type: 'zip'
           path: ${{ matrix.executable }}
           filename: ${{ matrix.asset_name }}
-      - name: Set env
+      - name: Set Version
         run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: Upload Release
-        # uses: "marvinpinto/action-automatic-releases@latest"
-        # with:
-        #   repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        #   files: ${{ matrix.asset_name }}
-        # 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # VERSION:  ${{ needs.draft_release.outputs.tag_name }}
         run: |
           echo $VERSION
           gh release upload --clobber ${{ env.VERSION }} ${{ matrix.asset_name }}
