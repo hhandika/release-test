@@ -3,58 +3,222 @@ name: Release
 on:
   push:
     tags:
-      - "*"
+      - '*'
 
 jobs:
-  publish:
-    name: Release for ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        name: [linux, macos]
-
-        include:
-          - name: linux
-            os: ubuntu-latest
-            executable: release-test
-            artifact_name: target/release/release-test
-            asset_name: release-test-Linux-x86_64.zip
-
-          - name: macos
-            os: macos-latest
-            executable: release-test
-            artifact_name: target/release/release-test
-            asset_name: release-test-MacOS-x86_64.zip
-
+  linux:
+    name: Linux
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - name: Checkout sources
+        uses: actions/checkout@v2
 
-      - uses: actions-rs/toolchain@v1
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
 
       - name: Build
-        run: cargo build --release && mv ${{ matrix.artifact_name }} .
-      
-      - name: Archive Release
-        uses: thedoctor0/zip-release@master
+        uses: actions-rs/cargo@v1
         with:
-          type: 'zip'
-          path: ${{ matrix.executable }}
-          filename: ${{ matrix.asset_name }}
-      - name: Set env
-        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-      - name: Upload Release
-        # uses: "marvinpinto/action-automatic-releases@latest"
-        # with:
-        #   repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        #   files: ${{ matrix.asset_name }}
-        # 
+          command: build
+          args: --release
+
+      - name: Compress release
+        run: tar zcvf release-test.tar.gz -C target/release/release-test
+
+      - name: Upload release
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: release-test.tar.gz
+          asset_name: release-test-Linux-x86_64.tar.gz
+          tag: ${{ github.ref }}
+
+  musl:
+    name: musl
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: x86_64-unknown-linux-musl
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target x86_64-unknown-linux-musl
+
+      - name: Compress
+        run: tar zcvf release-test.tar.gz -C target/release/release-test
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: camilladsp.tar.gz
+          asset_name: release-test-Linux-musl-x86_64.tar.gz
+          tag: ${{ github.ref }}
+
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+
+      - name: Compress
+        run: powershell Compress-Archive target/release/release-test.exe release-test.zip
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: release-test.zip
+          asset_name: camilladsp-windows-amd64.zip
+          tag: ${{ github.ref }}
+
+  macos:
+    name: macOS
+    runs-on: macos-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+
+      - name: Compress
+        run: tar -zcvf release-test.tar.gz -C target/release release-test
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: release-test.tar.gz
+          asset_name: camilladsp-macos-amd64.tar.gz
+          tag: ${{ github.ref }}
+
+
+  macos_arm:
+    name: macOS aarch64
+    runs-on: macos-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: aarch64-apple-darwin
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args:  --release --target aarch64-apple-darwin
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # VERSION:  ${{ needs.draft_release.outputs.tag_name }}
-        run: |
-          echo $VERSION
-          gh release upload --clobber ${{ env.VERSION }} ${{ matrix.asset_name }}
+          SDKROOT: /Applications/Xcode_12.4.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk
+          MACOSX_DEPLOYMENT_TARGET: 11.1
+          DEVELOPER_DIR: /Applications/Xcode_12.4.app
+
+      - name: Compress
+        run: tar -zcvf release-test.tar.gz -C target/aarch64-apple-darwin/release/release-test
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: camilladsp.tar.gz
+          asset_name: release-test-macOS-ARM64.tar.gz
+          tag: ${{ github.ref }}
+
+# on:
+#   push:
+#     tags:
+#       - "*"
+
+# jobs:
+#   publish:
+#     name: Release for ${{ matrix.os }}
+#     runs-on: ${{ matrix.os }}
+#     strategy:
+#       matrix:
+#         name: [linux, macos]
+
+#         include:
+#           - name: linux
+#             os: ubuntu-latest
+#             executable: release-test
+#             artifact_name: target/release/release-test
+#             asset_name: release-test-Linux-x86_64.zip
+
+#           - name: macos
+#             os: macos-latest
+#             executable: release-test
+#             artifact_name: target/release/release-test
+#             asset_name: release-test-MacOS-x86_64.zip
+
+#     steps:
+#       - uses: actions/checkout@v1
+
+#       - uses: actions-rs/toolchain@v1
+#         with:
+#           profile: minimal
+#           toolchain: stable
+
+#       - name: Build
+#         run: cargo build --release && mv ${{ matrix.artifact_name }} .
+      
+#       - name: Archive Release
+#         uses: thedoctor0/zip-release@master
+#         with:
+#           type: 'zip'
+#           path: ${{ matrix.executable }}
+#           filename: ${{ matrix.asset_name }}
+#       - name: Set env
+#         run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+#       - name: Upload Release
+#         # uses: "marvinpinto/action-automatic-releases@latest"
+#         # with:
+#         #   repo_token: "${{ secrets.GITHUB_TOKEN }}"
+#         #   files: ${{ matrix.asset_name }}
+#         # 
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#           # VERSION:  ${{ needs.draft_release.outputs.tag_name }}
+#         run: |
+#           echo $VERSION
+#           gh release upload --clobber ${{ env.VERSION }} ${{ matrix.asset_name }}
 
