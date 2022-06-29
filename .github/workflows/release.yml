@@ -57,7 +57,7 @@ jobs:
           args: --release --target x86_64-unknown-linux-musl
 
       - name: Compress
-        run: tar zcvf release-test.tar.gz -C target/release release-test
+        run: tar zcvf release-test.tar.gz -C target/x86_64-unknown-linux-musl/release release-test
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v1-release
