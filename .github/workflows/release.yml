@@ -56,7 +56,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release
+          args: --release --target x86_64-unknown-linux-musl
 
       - name: Compress release
         run: tar czvf release-test.tar.gz -C target/x86_64-unknown-linux-musl/release release-test
@@ -155,7 +155,7 @@ jobs:
           args: --release
 
       - name: Compress release
-        run: tar czvf release-test.tar.gz -C target/release release-test
+        run: powershell Compress-Archive target/release/release-test.exe release-test.zip
 
       - name: Upload release
         uses: svenstaro/upload-release-action@v2
