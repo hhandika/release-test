@@ -178,8 +178,8 @@ jobs:
       - name: Build
         uses: dtolnay/rust-toolchain@stable
         with:
-          command: build
-          args: --release --target arm-linux-androideabi
+          targets: arm-linux-androideabi
+        run: cargo build --release --target arm-linux-androideabi
 
       - name: Compress release
         run: tar czvf release-test.tar.gz -C target/arm-linux-androideabi/release release-test
