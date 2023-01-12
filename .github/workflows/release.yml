@@ -179,7 +179,6 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: arm-linux-androideabi
-        # run: cargo build --release --target arm-linux-androideabi
 
       - name: Compress release
         run: tar czvf release-test.tar.gz -C target/arm-linux-androideabi/release release-test
