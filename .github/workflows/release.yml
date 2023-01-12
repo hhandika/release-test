@@ -164,3 +164,30 @@ jobs:
           file: release-test.zip
           asset_name: release-test-Windows-x86_64.zip
           tag: ${{ github.ref }}
+  
+  android:
+    name: Android Arm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          command: build
+          args: --release --target arm-linux-androideabi
+
+      - name: Compress release
+        run: tar czvf release-test.tar.gz -C target/arm-linux-androideabi/release release-test
+
+      - name: Upload release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: release-test.zip
+          asset_name: release-test-Windows-x86_64.zip
+          tag: ${{ github.ref }}
