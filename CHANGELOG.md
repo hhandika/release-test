@@ -1,5 +1,9 @@
 # Release Notes
 
+## v0.1.16
+
+- Test for windows.
+
 ## v0.1.14
 
 - Update tags
